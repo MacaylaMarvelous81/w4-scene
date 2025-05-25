@@ -44,23 +44,18 @@ fn convert_2bpp(img: DynamicImage) -> Vec<u8> {
             let pixel = img.get_pixel(x, y);
 
             // Arbitrary ARQ4 palette! Why not?
-            match pixel.channels() {
-                [255, 255, 255, _] => {
-                },
-                [103, 114, 169, _] => {
-                    byte |= 1 << (7 - bit);
-                },
-                [58, 50, 119, _] => {
-                    byte |= 1 << (6 - bit);
-                },
-                [0, 0, 0, _] => {
-                    byte |= 1 << (7 - bit);
-                    byte |= 1 << (6 - bit);
-                },
+            let bits = match pixel.channels() {
+                [255, 255, 255, _] => 0,
+                [103, 114, 169, _] => 1,
+                [58, 50, 119, _] => 2,
+                [0, 0, 0, _] => 3,
                 _ => {
                     println!("cargo::warning=unknown color encountered when processing an image");
+                    0
                 }
-            }
+            };
+
+            byte |= bits << (6 - bit);
 
             bit += 2;
             if bit == 8 {
